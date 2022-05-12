@@ -2,6 +2,19 @@
 
 ARG_ERROR=0
 FLOPPY_DENSITY=2880
+CURRENT_UID=`id -u`
+CURRENT_GID=`id -g`
+
+MCOPY=`which mcopy`
+DD=`which dd`
+UNZIP=`which unzip`
+SUDO=`which sudo`
+MKFS_VFAT=`which mkfs.vfat`
+
+if [ ! -x "$MCOPY" ]; then
+   echo "Missing dependency: mtools"
+   exit 1
+fi
 
 while [ "$1" ]; do
    case "$1" in
@@ -32,25 +45,36 @@ while [ "$1" ]; do
 done
 
 if [ $ARG_ERROR = 1 ] || [ -z "$IMG_PATH" ]; then
-   echo "usage: $0 [-z zipfile] [-d srcdir] [image_path] [mount_path]"
-else
+   echo "usage: $0 [-z zipfile] [-d srcdir] <image_path> [mount_path]"
+   exit 1
+fi
 
-   /bin/dd if=/dev/zero bs=512 count=$FLOPPY_DENSITY of="$IMG_PATH" && \
-   /sbin/mkfs.vfat "$IMG_PATH"
+$DD if=/dev/zero bs=512 count=$FLOPPY_DENSITY of="$IMG_PATH" && \
+$MKFS_VFAT "$IMG_PATH"
 
-   if [ -n "$ZIP_PATH" ]; then
-      TEMP_PATH="`mktemp -d`"
-      unzip -d "$TEMP_PATH" "$ZIP_PATH"
-      mcopy -spmv -i "$IMG_PATH" "$TEMP_PATH/"* "::"
-      rm -rf "$TEMP_PATH"
+if [ -n "$ZIP_PATH" ]; then
+
+   if [ ! -x "$UNZIP" ]; then
+      echo "Missing dependency: unzip"
+      exit 1
    fi
 
-   if [ -n "$DIR_PATH" ]; then
-      mcopy -spmv -i "$IMG_PATH" "$DIR_PATH/"* "::"
-   fi
+   TEMP_PATH="`mktemp -d`"
 
-   if [ -f "$IMG_PATH" ] && [ -n "$MOUNT_PATH" ]; then
-      sudo /bin/mount -o loop,uid=1000,gid=1000 "$IMG_PATH" "$MOUNT_PATH"
-   fi
+   $UNZIP -d "$TEMP_PATH" "$ZIP_PATH"
+   
+   $MCOPY -spmv -i "$IMG_PATH" "$TEMP_PATH/"* "::"
+
+   rm -rf "$TEMP_PATH"
+
+elif [ -n "$DIR_PATH" ]; then
+
+   $MCOPY -spmv -i "$IMG_PATH" "$DIR_PATH/"* "::"
+
+fi
+
+if [ -f "$IMG_PATH" ] && [ -n "$MOUNT_PATH" ]; then
+   $SUDO /bin/mount -o loop,uid=$CURRENT_UID,gid=$CURRENT_GID \
+      "$IMG_PATH" "$MOUNT_PATH"
 fi
 
