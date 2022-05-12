@@ -45,7 +45,7 @@ while [ "$1" ]; do
 done
 
 if [ $ARG_ERROR = 1 ] || [ -z "$IMG_PATH" ]; then
-   echo "usage: $0 [-z zipfile] [-d srcdir] <image_path> [mount_path]"
+   echo "usage: $0 [-z zip_file] [-d source_dir] <image_path> [mount_path]"
    exit 1
 fi
 

@@ -38,7 +38,7 @@ while [ "$1" ]; do
 done
 
 if [ $ARG_ERROR = 1 ] || [ -z "$IMAGE_FILE" ] || [ -f "$EXTRACT_DIR" ]; then
-   echo "Usage: $0 <image file> [destination dir]"
+   echo "usage: $0 <image_file> [destination_dir]"
    exit 1
 fi
 
