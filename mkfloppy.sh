@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ARG_ERROR=0
+SHIFT_ONCE="/"
 FLOPPY_DENSITY=2880
 CURRENT_UID=`id -u`
 CURRENT_GID=`id -g`
@@ -26,6 +27,11 @@ while [ "$1" ]; do
       "-d"|"--dir")
          shift
          DIR_PATH="$1"
+          ;;
+
+      "-1")
+         shift
+         SHIFT_ONCE="/$1/"
          ;;
 
       "-7"|"--720k")
@@ -63,13 +69,13 @@ if [ -n "$ZIP_PATH" ]; then
 
    $UNZIP -d "$TEMP_PATH" "$ZIP_PATH"
    
-   $MCOPY -spmv -i "$IMG_PATH" "$TEMP_PATH/"* "::"
+   $MCOPY -spmv -i "$IMG_PATH" "$TEMP_PATH$SHIFT_ONCE"* "::"
 
    rm -rf "$TEMP_PATH"
 
 elif [ -n "$DIR_PATH" ]; then
 
-   $MCOPY -spmv -i "$IMG_PATH" "$DIR_PATH/"* "::"
+   $MCOPY -spmv -i "$IMG_PATH" "$DIR_PATH$SHIFT_ONCE"* "::"
 
 fi
 
